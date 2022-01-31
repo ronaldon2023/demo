@@ -1,0 +1,61 @@
+##################################################################################
+# Amazon, LLC
+# Create file in memory and execute PUT into hardcoded S3 bucket. 
+# This script is a prototype to assist testing S3 bucket and listing S3 content. 
+# Author:ronnasci@amazon.com
+# Jan 25th 2022.
+##################################################################################
+
+import json
+
+def lambda_handler(event, context):
+    # TODO implement
+    usage_demo()
+    return {
+        'statusCode': 200,
+        'body': json.dumps('Hello from Lambda!')
+}
+
+def usage_demo():
+
+    import json
+    import urllib.parse
+    import boto3
+    import botocore
+    import random
+    
+    BUCKET_NAME = 'developer-remediation-data'
+    PREFIX = 'sub-folder/'
+    #Testing creating and PUT a .csv file in subfolder
+    s3 = boto3.resource('s3')
+    report = ['tracker', 'data_rem']
+    for x in report:
+    
+        # Creating a file tracker and data_rem data for example:
+        randval = random.randrange(1000)
+        filename = x + str(randval) + ".csv"
+        try:
+            s3.Object(BUCKET_NAME, PREFIX + filename).put(Body=f'{x} string content in file and random {randval}')
+            
+        except botocore.exceptions.ClientError as error:
+            print (f'Error PUT to S3 bucket {BUCKET_NAME}') 
+            raise error
+        except:
+            print ('Generic error. Verify bucket exists {BUCKET_NAME}')
+            raise error
+      
+    #Now list files in S3 bucket:
+    contentbucket = s3.Bucket(BUCKET_NAME)
+    icount = 0
+    try:
+        for item in contentbucket.objects.all():
+            print(item)
+            icount += 1
+        print (f'Graceful termination. Total items in S3 bucket = {icount}')
+        
+    except botocore.exceptions.ClientError as error:
+            print (f'Error GET S3 bucket {BUCKET_NAME}') 
+            raise error
+    except:
+            print ('Generic error. Verify bucket exists {BUCKET_NAME}')
+            raise error
